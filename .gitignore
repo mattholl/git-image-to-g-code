@@ -2,3 +2,5 @@
 .vscode
 temp.ps
 venv
+.mypy_cache
+__pycache__
