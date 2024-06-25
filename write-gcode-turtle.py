@@ -1,19 +1,28 @@
-from TurtleGraphics import TurtleGraphics
+from TurtleGraphics import TurtleGraphics, Position
 
-test_turtle = TurtleGraphics(width=24, height=24, feed_rate=1000)
-test_turtle.pen_down()
-test_turtle.goto(5, 5)
-test_turtle.set_relative_mode()
-test_turtle.goto(10, 0)
-test_turtle.goto(0, -10)
-test_turtle.goto(-10, 0)
-test_turtle.goto(-10, -10)
-test_turtle.pen_up()
+# Initialize the TurtleGraphics instance
+test_turtle = TurtleGraphics(width=800, height=800, feed_rate=1000)
 test_turtle.set_absolute_mode()
-test_turtle.goto(0, 0)
-# test_turtle.goto(24, 24)
 
-instructions = test_turtle.write_gcode(24, 24)
+# Start at the center position
+test_turtle.current_position = Position(test_turtle.width // 2, test_turtle.height // 2)
+test_turtle.current_angle = 0
+
+# Draw the square
+test_turtle.pen_down()
+test_turtle.forward(100)
+test_turtle.right(90)
+test_turtle.forward(100)
+test_turtle.right(90)
+test_turtle.forward(100)
+test_turtle.right(90)
+test_turtle.forward(100)
+test_turtle.right(90)  # Complete the square
+test_turtle.pen_up()
+
+# Generate G-code
+instructions = test_turtle.write_gcode(800, 800)
 print(instructions)
 
-test_turtle.save_png("./data/gcode-render.png", target_width=24, target_height=24)
+# Save the drawing as PNG
+test_turtle.save_png("square.png", target_width=24, target_height=24)
