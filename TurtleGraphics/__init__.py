@@ -37,9 +37,7 @@ class TurtleGraphics:
         # Create a PIL image and draw object
         self.image = Image.new("RGB", (width, height), (255, 255, 255))
         self.draw_obj = ImageDraw.Draw(self.image)
-        self.current_position = Position(
-            width // 2, height // 2
-        )  # Initialize at center
+        self.current_position = Position(0, 0)  # Initialize at top left
         self.current_angle = 0  # Initialize angle
 
     def _get_current_position(self):
