@@ -1,0 +1,5 @@
+G21 ; Set units to millimeters
+G90 ; Absolute positioning
+G1 X4.255 Y4.009 F1200
+G1 X3.922 Y5.574 F1200
+G1 X2.342 Y5.323 F1200

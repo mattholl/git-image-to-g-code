@@ -63,6 +63,27 @@ class TurtleGraphics:
     def left(self, angle):
         self.current_angle += angle
 
+    def circle(self, radius, extent=None, steps=None):
+        start = self._get_current_position()
+        angle = math.radians(self.current_angle + 90)
+        centre = Position(
+            start.x + radius * math.cos(angle), start.y + radius * math.sin(angle)
+        )
+        if extent is None:
+            extent = 360
+        if steps is None:
+            steps = 36  # Default steps for a full circle
+        step_angle = extent / steps
+        for _ in range(steps):
+            angle += math.radians(step_angle)
+            end = Position(
+                centre.x + radius * math.cos(angle), centre.y + radius * math.sin(angle)
+            )
+            if self.pen_is_down:
+                self.gcode_moves.append(LinearMove(start, end, self.feed_rate))
+                LinearMove(start, end, self.feed_rate).draw(self.draw_obj)
+            start = end
+
     def pen_up(self):
         self.pen_is_down = False
 
@@ -76,33 +97,11 @@ class TurtleGraphics:
         return "\n".join(gcode)
 
     def save_image(self, filename, target_width=64, target_height=64):
-        # img = self.image.resize((target_width, target_height), Image.NEAREST)
-        img = self.image
-        img.save(filename, "png")
+        img = self.image.resize((target_width, target_height), Image.NEAREST)
+        reflected_img = img.transpose(Image.FLIP_TOP_BOTTOM)
+        reflected_img.save(filename, "png")
 
     def clear(self):
         self.gcode_moves = []
         self.image = Image.new("RGB", (self.width, self.height), (255, 255, 255))
         self.draw_obj = ImageDraw.Draw(self.image)
-
-
-# Example of how to use the TurtleGraphics class
-tg = TurtleGraphics(height=64, width=64, feed_rate=1200)
-tg.pen_down()
-tg.forward(20)
-tg.right(90)
-tg.forward(20)
-tg.right(90)
-tg.forward(20)
-tg.right(90)
-tg.forward(20)
-tg.pen_up()
-
-# Export G-code
-gcode = tg.export_gcode(scale=0.1)
-print("Generated G-code:\n", gcode)
-
-# Save the drawing as PNG
-filename = "data/square_64.png"
-tg.save_image(filename, target_width=64, target_height=64)
-print(f"Image saved to {filename}")
