@@ -54,49 +54,56 @@ def generate_dataset(num_samples=100, output_dir="dataset"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    # Create subdirectories for images and gcode
-    images_dir = os.path.join(output_dir, "images")
-    gcode_dir = os.path.join(output_dir, "gcode")
-    os.makedirs(images_dir, exist_ok=True)
-    os.makedirs(gcode_dir, exist_ok=True)
+    # Create subdirectories for train, validation, and test sets
+    for split in ["train", "validation", "test"]:
+        for subdir in ["images", "gcode"]:
+            os.makedirs(os.path.join(output_dir, split, subdir), exist_ok=True)
 
-    metadata = []
+    metadata = {split: [] for split in ["train", "validation", "test"]}
 
     for i in range(num_samples):
         tg = TurtleGraphics(width=64, height=64, feed_rate=1200)
         tg.pen_down()
         generate_random_movements(tg)
 
+        # Determine which split this sample belongs to
+        if i < int(0.7 * num_samples):
+            split = "train"
+        elif i < int(0.85 * num_samples):
+            split = "validation"
+        else:
+            split = "test"
+
         # Save G-code
         gcode_filename = f"sample_{i:04d}.txt"
-        gcode_path = os.path.join(gcode_dir, gcode_filename)
+        gcode_path = os.path.join(output_dir, split, "gcode", gcode_filename)
         with open(gcode_path, "w") as gcode_file:
             gcode = tg.export_gcode(scale=0.1)
             gcode_file.write(gcode)
 
         # Save image
         image_filename = f"sample_{i:04d}.png"
-        image_path = os.path.join(images_dir, image_filename)
+        image_path = os.path.join(output_dir, split, "images", image_filename)
         tg.save_image(image_path, target_width=64, target_height=64)
 
         # Add metadata entry
-        metadata.append(
+        metadata[split].append(
             {
-                "file_name": os.path.join("images", image_filename),
-                "text": os.path.join("gcode", gcode_filename),
+                "file_name": os.path.join(split, "images", image_filename),
+                "text": os.path.join(split, "gcode", gcode_filename),
             }
         )
 
-        print(f"Saved sample {i:04d}")
+        print(f"Saved sample {i:04d} to {split} set")
 
-    # Save metadata file
-    metadata_path = os.path.join(output_dir, "metadata.jsonl")
-    with open(metadata_path, "w") as metadata_file:
-        for entry in metadata:
-            json.dump(entry, metadata_file)
-            metadata_file.write("\n")
-
-    print(f"Metadata saved to {metadata_path}")
+    # Save metadata files for each split
+    for split, split_metadata in metadata.items():
+        metadata_path = os.path.join(output_dir, f"{split}_metadata.jsonl")
+        with open(metadata_path, "w") as metadata_file:
+            for entry in split_metadata:
+                json.dump(entry, metadata_file)
+                metadata_file.write("\n")
+        print(f"{split.capitalize()} metadata saved to {metadata_path}")
 
 
 # Generate the dataset
