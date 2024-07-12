@@ -1,5 +1,7 @@
 import os
+import os
 import random
+import json
 from math import atan2, degrees
 from TurtleGraphics import (
     TurtleGraphics,
@@ -52,22 +54,49 @@ def generate_dataset(num_samples=100, output_dir="dataset"):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
+    # Create subdirectories for images and gcode
+    images_dir = os.path.join(output_dir, "images")
+    gcode_dir = os.path.join(output_dir, "gcode")
+    os.makedirs(images_dir, exist_ok=True)
+    os.makedirs(gcode_dir, exist_ok=True)
+
+    metadata = []
+
     for i in range(num_samples):
         tg = TurtleGraphics(width=64, height=64, feed_rate=1200)
         tg.pen_down()
         generate_random_movements(tg)
 
         # Save G-code
-        gcode_filename = os.path.join(output_dir, f"sample_{i:03d}.txt")
-        with open(gcode_filename, "w") as gcode_file:
+        gcode_filename = f"sample_{i:04d}.txt"
+        gcode_path = os.path.join(gcode_dir, gcode_filename)
+        with open(gcode_path, "w") as gcode_file:
             gcode = tg.export_gcode(scale=0.1)
             gcode_file.write(gcode)
 
         # Save image
-        image_filename = os.path.join(output_dir, f"sample_{i:03d}.png")
-        tg.save_image(image_filename, target_width=64, target_height=64)
+        image_filename = f"sample_{i:04d}.png"
+        image_path = os.path.join(images_dir, image_filename)
+        tg.save_image(image_path, target_width=64, target_height=64)
 
-        print(f"Saved sample {i:03d}")
+        # Add metadata entry
+        metadata.append(
+            {
+                "file_name": os.path.join("images", image_filename),
+                "text": os.path.join("gcode", gcode_filename),
+            }
+        )
+
+        print(f"Saved sample {i:04d}")
+
+    # Save metadata file
+    metadata_path = os.path.join(output_dir, "metadata.jsonl")
+    with open(metadata_path, "w") as metadata_file:
+        for entry in metadata:
+            json.dump(entry, metadata_file)
+            metadata_file.write("\n")
+
+    print(f"Metadata saved to {metadata_path}")
 
 
 # Generate the dataset
