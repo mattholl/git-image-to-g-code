@@ -56,8 +56,7 @@ def generate_dataset(num_samples=100, output_dir="dataset"):
 
     # Create subdirectories for train, validation, and test sets
     for split in ["train", "validation", "test"]:
-        for subdir in ["images", "gcode"]:
-            os.makedirs(os.path.join(output_dir, split, subdir), exist_ok=True)
+        os.makedirs(os.path.join(output_dir, split), exist_ok=True)
 
     metadata = {split: [] for split in ["train", "validation", "test"]}
 
@@ -75,30 +74,25 @@ def generate_dataset(num_samples=100, output_dir="dataset"):
             split = "test"
 
         # Save G-code
-        gcode_filename = f"sample_{i:04d}.txt"
-        gcode_path = os.path.join(output_dir, split, "gcode", gcode_filename)
+        gcode_filename = f"gcode_{i:04d}.txt"
+        gcode_path = os.path.join(output_dir, split, gcode_filename)
         with open(gcode_path, "w") as gcode_file:
             gcode = tg.export_gcode(scale=0.1)
             gcode_file.write(gcode)
 
         # Save image
-        image_filename = f"sample_{i:04d}.png"
-        image_path = os.path.join(output_dir, split, "images", image_filename)
+        image_filename = f"image_{i:04d}.png"
+        image_path = os.path.join(output_dir, split, image_filename)
         tg.save_image(image_path, target_width=64, target_height=64)
 
         # Add metadata entry
-        metadata[split].append(
-            {
-                "file_name": os.path.join(split, "images", image_filename),
-                "text": os.path.join(split, "gcode", gcode_filename),
-            }
-        )
+        metadata[split].append({"file_name": image_filename, "text": gcode_filename})
 
         print(f"Saved sample {i:04d} to {split} set")
 
     # Save metadata files for each split
     for split, split_metadata in metadata.items():
-        metadata_path = os.path.join(output_dir, f"{split}_metadata.jsonl")
+        metadata_path = os.path.join(output_dir, split, "metadata.jsonl")
         with open(metadata_path, "w") as metadata_file:
             for entry in split_metadata:
                 json.dump(entry, metadata_file)
@@ -107,4 +101,4 @@ def generate_dataset(num_samples=100, output_dir="dataset"):
 
 
 # Generate the dataset
-generate_dataset(num_samples=100, output_dir="dataset")
+generate_dataset(num_samples=10, output_dir="dataset")
